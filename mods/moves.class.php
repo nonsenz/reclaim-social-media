@@ -139,19 +139,25 @@ class moves_reclaim_module extends reclaim_module {
         return $config;
     }
 
-    public function import($forceResync) {
+    public function import($forceResync)
+    {
+        $reclaimData = array();
         if (get_option('moves_user_id') && get_option('moves_access_token') ) {
             $rawData = parent::import_via_curl(sprintf(self::$apiurl, self::$count, get_option('moves_access_token')), self::$timeout);
-            $rawData = json_decode($rawData, true);
-
-            if ($rawData) {
-                $data = $this->map_data($rawData);
-                parent::insert_posts($data);
-                update_option('reclaim_'.$this->shortname.'_last_update', current_time('timestamp'));
-            }
-            else parent::log(sprintf(__('%s returned no data. No import was done', 'reclaim'), $this->shortname));
+            $reclaimData = json_decode($rawData, true);
         }
-        else parent::log(sprintf(__('%s user data missing. No import was done', 'reclaim'), $this->shortname));
+
+        return $reclaimData;
+    }
+
+    public function process(array $reclaimData)
+    {
+        return $this->map_data($reclaimData);
+    }
+
+    public function export(array $reclaimData)
+    {
+        parent::insert_posts($reclaimData);
     }
 
     /**

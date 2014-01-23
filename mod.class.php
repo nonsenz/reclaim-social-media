@@ -66,8 +66,11 @@ class reclaim_module {
     /**
     * Interface
     */
-    public function import($forceResync) {
-    }
+    public abstract function import($forceResync);
+
+    public abstract function process(array $reclaimData);
+
+    public abstract function export(array $reclaimData);
 
     /**
     * Interface

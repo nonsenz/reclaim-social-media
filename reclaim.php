@@ -57,7 +57,20 @@ class reclaim_core {
             if ($mod['active']) {
                 if ((!$isLockedMod && $isStaleMod && get_option('reclaim_auto_update')) || $adminResync) {
                     $mod['instance']->prepareImport($adminResync);
-                    $mod['instance']->import($adminResync);
+                    $reclaimData = $mod['instance']->import($adminResync);
+                    if ($reclaimData) {
+                        $reclaimData = $mod['instance']->process();
+                        if ($reclaimData) {
+                            $mod['instance']->export();
+                            update_option('reclaim_'.$this->shortname.'_last_update', current_time('timestamp'));
+                        } else {
+                            reclaim_module::log(sprintf(__('%s process returned no data. No export was done', 'reclaim'), $mod['name']));
+                        }
+                    }
+                    else {
+                        reclaim_module::log(sprintf(__('%s omport returned no data. No process and export was done', 'reclaim'), $mod['name']));
+                    }
+
                     $mod['instance']->finishImport($adminResync);
                 }
             }

@@ -51,7 +51,9 @@ class bookmarks_reclaim_module extends reclaim_module {
 <?php
     }
 
-    public function import($forceResync) {
+    public function import($forceResync)
+    {
+        $reclaimData = array();
         if (get_option('bookmarks_api_url') ) {
             if ( ! class_exists( 'SimplePie' ) )
                 require_once( ABSPATH . WPINC . '/class-feed.php' );
@@ -78,13 +80,19 @@ class bookmarks_reclaim_module extends reclaim_module {
                 parent::log(sprintf(__('no %s data', 'reclaim'), $this->shortname));
                 parent::log($feed->error());
             }
-            else {
-                $data = self::map_data($feed);
-                parent::insert_posts($data);
-                update_option('reclaim_'.$this->shortname.'_last_update', current_time('timestamp'));
-            }
         }
-        else parent::log(sprintf(__('%s user data missing. No import was done', 'reclaim'), $this->shortname));
+
+        return $reclaimData;
+    }
+
+    public function process(array $reclaimData)
+    {
+        return $this->map_data($reclaimData);
+    }
+
+    public function export(array $reclaimData)
+    {
+        parent::insert_posts($reclaimData);
     }
 
     private function map_data($feed) {
